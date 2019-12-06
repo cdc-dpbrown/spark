@@ -5,6 +5,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-stretch AS build
 WORKDIR /src
+COPY ["./src/Spark/", "Spark/"]
 COPY ["./src/Spark.Web/", "Spark.Web/"]
 COPY ["./src/Spark.Engine/", "Spark.Engine/"]
 COPY ["./src/Spark.Mongo/", "Spark.Mongo/"]
@@ -19,5 +20,10 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
 # COPY --from=build /src/Spark.Web/example_data/fhir_examples ./fhir_examples
+
+# don't run as root user
+RUN chown 1001:0 /app/Spark.Web.dll
+RUN chmod g+rwx /app/Spark.Web.dll
+USER 1001
 
 ENTRYPOINT ["dotnet", "Spark.Web.dll"]
